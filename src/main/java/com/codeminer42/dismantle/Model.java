@@ -14,15 +14,35 @@ public abstract class Model {
     }
 
     protected Model(Map<String, Object> externalRepresentation) {
-        Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
+        final Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
         for (String property : selfRepresentation.keySet()) {
-            Object transformable = externalRepresentation.get(selfRepresentation.get(property));
+            String path = selfRepresentation.get(property);
+            Object transformable = getData(externalRepresentation, selfRepresentation, path);
             assignProperty(property, transformable);
         }
     }
 
+    private static Object getData(Map<String, Object> externalRepresentation, Map<String, String> selfRepresentation, String path) {
+        if (path.contains(".")) {
+            String[] subPaths = path.split("\\.");
+            Object nestedObject = externalRepresentation.get(subPaths[0]);
+            if (nestedObject instanceof Map) {
+                try {
+                    Map<String, Object> nestedRepresentation = (Map<String, Object>) nestedObject;
+                    return getData(nestedRepresentation, selfRepresentation, path.substring(subPaths[0].length()+1));
+                } catch (ClassCastException e) {
+                    // Well, not a Map<String, Object> :/
+                    e.printStackTrace();
+                }
+            }
+            return null;
+        } else {
+            return externalRepresentation.get(path);
+        }
+    }
+
     public Map<String, Object> externalRepresentation() {
-        Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
+        final Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
         Map<String, Object> representation = new HashMap<String, Object>();
         for (String property : selfRepresentation.keySet()) {
             representation.put(property, tryToGetField(property));
@@ -48,9 +68,10 @@ public abstract class Model {
         }
     }
 
-    private Object tryToInvokeTransformation(String property, Object mapValue) throws NoSuchMethodException {
+    private final Object tryToInvokeTransformation(String property, Object mapValue) throws NoSuchMethodException {
         try {
-            Method method = this.getClass().getMethod("transformTo" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
+            Method method = this.getClass().getDeclaredMethod("transformTo" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
+            method.setAccessible(true);
             return method.invoke(this, mapValue);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
@@ -72,7 +93,7 @@ public abstract class Model {
         }
     }
 
-    private Object tryToGetField(String property) {
+    private final Object tryToGetField(String property) {
         try {
             Field field = this.getClass().getDeclaredField(property);
             field.setAccessible(true);

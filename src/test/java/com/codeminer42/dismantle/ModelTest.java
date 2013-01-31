@@ -1,6 +1,5 @@
 package com.codeminer42.dismantle;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -17,6 +16,7 @@ public class ModelTest {
         public String birthdate;
         public Double distance;
         public String content;
+        public Boolean smoker;
 
         public ModelExample() {
             super();
@@ -32,14 +32,19 @@ public class ModelTest {
             extRep.put("birthdate", "birth_date");
             extRep.put("distance", "distance");
             extRep.put("content", "CONTENT");
+            extRep.put("smoker", "user.smoker");
             return extRep;
         }
 
-        public Object transformToBirthdate(Object obj) {
+        private Object transformToBirthdate(Object obj) {
             return obj;
         }
 
-        public Object transformToDistance(Object obj) {
+        private Object transformToSmoker(Object obj) {
+            return obj;
+        }
+
+        private Object transformToDistance(Object obj) {
             try {
                 return parseDouble((String) obj);
             } catch(Exception e) {
@@ -66,6 +71,17 @@ public class ModelTest {
         assertThat(example.content, is("Codeminer 42"));
         assertThat(example.distance, nullValue());
         assertThat(example.birthdate, nullValue());
+    }
+
+    @Test
+    public void testNestedProperty() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> nestedMap = new HashMap<String, Object>();
+        nestedMap.put("smoker", true);
+        map.put("user", nestedMap);
+
+        ModelExample example = new ModelExample(map);
+        assertThat(example.smoker, is(true));
     }
 
     @Test
