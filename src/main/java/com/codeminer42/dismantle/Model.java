@@ -45,7 +45,7 @@ public abstract class Model {
         final Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
         Map<String, Object> representation = new HashMap<String, Object>();
         for (String property : selfRepresentation.keySet()) {
-            representation.put(selfRepresentation.get(property), tryToGetField(property));
+            representation.put(selfRepresentation.get(property), getProperty(property));
         }
         return representation;
     }
@@ -68,11 +68,35 @@ public abstract class Model {
         }
     }
 
+    private Object getProperty(String property) {
+        Object propertyData = tryToGetField(property);
+        Object result = null;
+        try {
+            result = tryToInvokeTransformationFrom(property, propertyData);
+        } catch (NoSuchMethodException e) {
+            result = propertyData;
+        }
+        return result;
+    }
+
     private final Object tryToInvokeTransformationTo(String property, Object mapValue) throws NoSuchMethodException {
         try {
             Method method = this.getClass().getDeclaredMethod("transformTo" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
             method.setAccessible(true);
             return method.invoke(this, mapValue);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private final Object tryToInvokeTransformationFrom(String property, Object propertyValue) throws NoSuchMethodException {
+        try {
+            Method method = this.getClass().getDeclaredMethod("transformFrom" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
+            method.setAccessible(true);
+            return method.invoke(this, propertyValue);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

@@ -52,6 +52,13 @@ public class ModelTest {
             return null;
         }
 
+        private Object transformFromDistance(Object obj) {
+            if (obj != null) {
+                return obj.toString();
+            }
+            return null;
+        }
+
     }
 
     @Test
@@ -95,7 +102,7 @@ public class ModelTest {
         Map<String, Object> rep = example.externalRepresentation();
 
         assertThat((String) rep.get("birth_date"), is("2002"));
-        assertThat((Double) rep.get("distance"), is(200.9));
+        assertThat((String) rep.get("distance"), is("200.9"));
         assertThat((String) rep.get("CONTENT"), is("Codeminer 42"));
     }
 
