@@ -51,6 +51,7 @@ public class ModelTest {
             }
             return null;
         }
+
     }
 
     @Test
@@ -93,9 +94,9 @@ public class ModelTest {
 
         Map<String, Object> rep = example.externalRepresentation();
 
-        assertThat((String) rep.get("birthdate"), is("2002"));
+        assertThat((String) rep.get("birth_date"), is("2002"));
         assertThat((Double) rep.get("distance"), is(200.9));
-        assertThat((String) rep.get("content"), is("Codeminer 42"));
+        assertThat((String) rep.get("CONTENT"), is("Codeminer 42"));
     }
 
     @Test
@@ -105,8 +106,8 @@ public class ModelTest {
 
         Map<String, Object> rep = example.externalRepresentation();
 
-        assertThat((String) rep.get("birthdate"), is("2002"));
+        assertThat((String) rep.get("birth_date"), is("2002"));
         assertThat((Double) rep.get("distance"), nullValue());
-        assertThat((String) rep.get("content"), nullValue());
+        assertThat((String) rep.get("CONTENT"), nullValue());
     }
 }

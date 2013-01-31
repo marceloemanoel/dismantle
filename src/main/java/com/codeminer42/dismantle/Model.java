@@ -45,7 +45,7 @@ public abstract class Model {
         final Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
         Map<String, Object> representation = new HashMap<String, Object>();
         for (String property : selfRepresentation.keySet()) {
-            representation.put(property, tryToGetField(property));
+            representation.put(selfRepresentation.get(property), tryToGetField(property));
         }
         return representation;
     }
@@ -54,7 +54,7 @@ public abstract class Model {
         Object result = null;
         try {
             try {
-                result = tryToInvokeTransformation(property, mapValue);
+                result = tryToInvokeTransformationTo(property, mapValue);
             } catch (NoSuchMethodException e) {
                 // try to setTheField with the result we got
                 result = mapValue;
@@ -68,7 +68,7 @@ public abstract class Model {
         }
     }
 
-    private final Object tryToInvokeTransformation(String property, Object mapValue) throws NoSuchMethodException {
+    private final Object tryToInvokeTransformationTo(String property, Object mapValue) throws NoSuchMethodException {
         try {
             Method method = this.getClass().getDeclaredMethod("transformTo" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
             method.setAccessible(true);
