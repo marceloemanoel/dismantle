@@ -18,7 +18,11 @@ public class ModelTest {
         public Double distance;
         public String content;
 
-        public ModelExample(Map<String, String> rep) {
+        public ModelExample() {
+            super();
+        }
+
+        public ModelExample(Map<String, Object> rep) {
             super(rep);
         }
 
@@ -46,7 +50,7 @@ public class ModelTest {
 
     @Test
     public void testPropertiesWithTransformMethods() {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, Object> map = new HashMap<String, Object>();
         map.put("birth_date", "2002");
         map.put("distance", "2000.0");
         ModelExample example = new ModelExample(map);
@@ -56,11 +60,37 @@ public class ModelTest {
 
     @Test
     public void testPropertiesWithoutTransformMethods() {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, Object> map = new HashMap<String, Object>();
         map.put("CONTENT", "Codeminer 42");
         ModelExample example = new ModelExample(map);
         assertThat(example.content, is("Codeminer 42"));
         assertThat(example.distance, nullValue());
         assertThat(example.birthdate, nullValue());
+    }
+
+    @Test
+    public void testExternalRepresentationWithCompleteExample() {
+        ModelExample example = new ModelExample();
+        example.birthdate = "2002";
+        example.distance = 200.9;
+        example.content = "Codeminer 42";
+
+        Map<String, Object> rep = example.externalRepresentation();
+
+        assertThat((String) rep.get("birthdate"), is("2002"));
+        assertThat((Double) rep.get("distance"), is(200.9));
+        assertThat((String) rep.get("content"), is("Codeminer 42"));
+    }
+
+    @Test
+    public void testExternalRepresentationWithIncompleteExample() {
+        ModelExample example = new ModelExample();
+        example.birthdate = "2002";
+
+        Map<String, Object> rep = example.externalRepresentation();
+
+        assertThat((String) rep.get("birthdate"), is("2002"));
+        assertThat((Double) rep.get("distance"), nullValue());
+        assertThat((String) rep.get("content"), nullValue());
     }
 }
