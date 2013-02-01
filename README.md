@@ -1,4 +1,4 @@
 dismantle
 =========
 
-A Mantle clone in Java.
+A [Mantle](https://github.com/github/Mantle) clone in Java.
