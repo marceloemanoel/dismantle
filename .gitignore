@@ -1,8 +1,10 @@
 *.class
 
-#IDEA
-.idea
+# Intellij project files
 *.iml
+*.ipr
+*.iws
+.idea/
 
 # Gradle #
 .gradle
