@@ -7,9 +7,30 @@ import java.util.Map;
 
 import static java.lang.Double.parseDouble;
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ModelTest {
+
+    class AddressExample extends Model {
+
+        public String zipcode;
+
+        public  AddressExample() {
+            super();
+        }
+
+        public AddressExample(Map<String, Object> rep) {
+            super(rep);
+        }
+
+        @Override
+        public Map<String, String> externalRepresentationKeyPaths() {
+            Map<String, String> extRep = new HashMap<String, String>();
+            extRep.put("zipcode", "zipcode");
+            return extRep;
+        }
+    }
 
     class ModelExample extends Model {
 
@@ -17,6 +38,7 @@ public class ModelTest {
         public Double distance;
         public String content;
         public Boolean smoker;
+        public AddressExample address;
 
         public ModelExample() {
             super();
@@ -33,6 +55,7 @@ public class ModelTest {
             extRep.put("distance", "distance");
             extRep.put("content", "CONTENT");
             extRep.put("smoker", "user.smoker");
+            extRep.put("address", "address");
             return extRep;
         }
 
@@ -59,6 +82,10 @@ public class ModelTest {
             return null;
         }
 
+        private  Object transformToAddress(Object obj) {
+            AddressExample address = new AddressExample((Map<String, Object>)obj);
+            return address;
+        }
     }
 
     @Test
@@ -116,5 +143,18 @@ public class ModelTest {
         assertThat((String) rep.get("birth_date"), is("2002"));
         assertThat((Double) rep.get("distance"), nullValue());
         assertThat((String) rep.get("CONTENT"), nullValue());
+    }
+
+    @Test
+    public void testTransformToAnotherObject() {
+        Map<String, Object> map = new HashMap<String, Object>();
+        Map<String, Object> nestedMap = new HashMap<String, Object>();
+        nestedMap.put("zipcode", "12345");
+        map.put("address", nestedMap);
+
+        ModelExample example = new ModelExample(map);
+
+        assertThat(example.address, instanceOf(AddressExample.class));
+        assertEquals(example.address.zipcode, "12345");
     }
 }
