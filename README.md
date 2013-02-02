@@ -64,3 +64,7 @@ You can also describe nested attributes on a map, for example:
 Now, the constructor will look for a Map inside a Map within the keys: 'location' -> 'address'.
 
 Wanna see more complex examples? [ModelTest](https://github.com/edgurgel/dismantle/blob/master/src/test/java/com/codeminer42/dismantle/ModelTest.java)
+
+## License
+
+dismantle is available under the MIT license. See the LICENSE file for more info.
