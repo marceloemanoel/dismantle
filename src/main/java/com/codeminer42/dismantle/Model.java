@@ -29,7 +29,7 @@ public abstract class Model {
         for (String property : selfRepresentation.keySet()) {
             String path = selfRepresentation.get(property);
             Object transformable = getData(externalRepresentation, path);
-            assignProperty(property, transformable);
+            setProperty(property, transformable);
         }
     }
 
@@ -75,7 +75,7 @@ public abstract class Model {
         return representation;
     }
 
-    private void assignProperty(String property, Object valueFromMap) {
+    private void setProperty(String property, Object valueFromMap) {
         Object result = null;
         try {
             try {
@@ -134,13 +134,8 @@ public abstract class Model {
      * @param property
      * @return property data
      */
-    private final Object tryToGetField(Field property) {
-        try {
-            property.setAccessible(true);
-            return property.get(this);
-        } catch (IllegalAccessException ignored) {
-        }
-        return null;
+    private Object tryToGetField(Field property) {
+        return mirrorOnThis.get().field(property);
     }
 
     private String capitalize(String word) {
