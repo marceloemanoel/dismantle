@@ -35,7 +35,7 @@ class ModelExample extends Model {
   }
 
   private Double transformToDistance(Object obj) {
-    return Double.valueof((String) obj);
+    return Double.valueOf((String) obj);
   }
 
   private Object transformFromDistance(Double obj) {
