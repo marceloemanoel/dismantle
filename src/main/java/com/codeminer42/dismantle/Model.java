@@ -15,7 +15,7 @@ public abstract class Model {
     private AccessorsController mirrorOnThis;
 
     public Map<String, String> externalRepresentationKeyPaths() {
-        return null;
+        return new HashMap<String, String>();
     }
 
     protected Model() {
@@ -25,7 +25,7 @@ public abstract class Model {
 
     protected Model(Map<String, Object> externalRepresentation) {
         this();
-        Map<String, String> selfRepresentation = this.completeExternalRepresentationKeyPaths();
+        Map<String, String> selfRepresentation = completeExternalRepresentationKeyPaths();
         for (String property : selfRepresentation.keySet()) {
             String path = selfRepresentation.get(property);
             Object transformable = getData(externalRepresentation, path);
@@ -34,17 +34,26 @@ public abstract class Model {
     }
 
     private Map<String, String> completeExternalRepresentationKeyPaths() {
-        Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
-        if (selfRepresentation == null)
-            selfRepresentation = new HashMap<String, String>();
-        for(Field f : this.getClass().getDeclaredFields()) {
-            if (!selfRepresentation.containsKey(f.getName())) {
-                if (!f.getName().startsWith("this$")) //Ignore nested-class reference
-                    selfRepresentation.put(f.getName(), f.getName());
+        Map<String, String> selfRepresentation = protectAgainstNull(externalRepresentationKeyPaths());
+        for(Field field : getClass().getDeclaredFields()) {
+            if (!selfRepresentation.containsKey(field.getName())) {
+                if (!isNestedClassReference(field))
+                    selfRepresentation.put(field.getName(), field.getName());
             }
 
         }
         return selfRepresentation;
+    }
+
+    private Map<String, String> protectAgainstNull(Map<String, String> map) {
+        if(map == null) {
+            return new HashMap<String, String>();
+        }
+        return map;
+    }
+
+    private boolean isNestedClassReference(Field field) {
+        return field.getName().startsWith("this$");
     }
 
     private static Object getData(Map<String, Object> externalRepresentation, String path) {
