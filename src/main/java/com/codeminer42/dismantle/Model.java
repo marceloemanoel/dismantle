@@ -101,7 +101,7 @@ public abstract class Model {
 
     private Object tryToInvokeTransformationTo(String property, Object mapValue) throws NoSuchMethodException {
         try {
-            Method method = this.getClass().getDeclaredMethod("transformTo" + property.substring(0, 1).toUpperCase() + property.substring(1), Object.class);
+            Method method = this.getClass().getDeclaredMethod("transformTo" + capitalize(property), Object.class);
             method.setAccessible(true);
             return method.invoke(this, mapValue);
         } catch (InvocationTargetException ignored) {
@@ -112,7 +112,7 @@ public abstract class Model {
 
     private Object tryToInvokeTransformationFrom(Field property, Object propertyValue) throws NoSuchMethodException {
         try {
-            Method method = this.getClass().getDeclaredMethod("transformFrom" + captitalizeFirstLetter(property.getName()), property.getType());
+            Method method = this.getClass().getDeclaredMethod("transformFrom" + capitalize(property.getName()), property.getType());
             method.setAccessible(true);
             return method.invoke(this, propertyValue);
         } catch (InvocationTargetException ignored) {
@@ -145,7 +145,7 @@ public abstract class Model {
         return null;
     }
 
-    private static String captitalizeFirstLetter(String word) {
+    private String capitalize(String word) {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
 
