@@ -53,6 +53,15 @@ map.put("distance", 500.022);
 new ModelExample(map);
 ```
 
+One can export the actual external representation using the method `externalRepresentation()`. For example:
+
+```java
+ModelExample example = new ModelExample();
+example.birthdate = "01/01/2011";
+Map<String, Object> externalRepresentation = example.externalRepresentation();
+assert(externalRepresentation.get("birth_date").equals("01/01/2011"));
+```
+
 You can also describe nested attributes on a map, for example:
 
 ```java
