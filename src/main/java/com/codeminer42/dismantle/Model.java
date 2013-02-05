@@ -1,21 +1,30 @@
 package com.codeminer42.dismantle;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.vidageek.mirror.dsl.AccessorsController;
+import net.vidageek.mirror.dsl.ClassController;
+import net.vidageek.mirror.dsl.Mirror;
+
 public abstract class Model {
+    
+    private ClassController<?> mirrorOnClass;
+    private AccessorsController mirrorOnThis;
+
     public Map<String, String> externalRepresentationKeyPaths() {
         return null;
     }
 
     protected Model() {
-
+        mirrorOnClass = new Mirror().on(getClass());
+        mirrorOnThis = new Mirror().on(this);
     }
 
     protected Model(Map<String, Object> externalRepresentation) {
+        this();
         Map<String, String> selfRepresentation = this.completeExternalRepresentationKeyPaths();
         for (String property : selfRepresentation.keySet()) {
             String path = selfRepresentation.get(property);
@@ -28,7 +37,6 @@ public abstract class Model {
         Map<String, String> selfRepresentation = this.externalRepresentationKeyPaths();
         if (selfRepresentation == null)
             selfRepresentation = new HashMap<String, String>();
-        final Field[] fields =  this.getClass().getDeclaredFields();
         for(Field f : this.getClass().getDeclaredFields()) {
             if (!selfRepresentation.containsKey(f.getName())) {
                 if (!f.getName().startsWith("this$")) //Ignore nested-class reference
@@ -67,18 +75,18 @@ public abstract class Model {
         return representation;
     }
 
-    private void assignProperty(String property, Object mapValue) {
+    private void assignProperty(String property, Object valueFromMap) {
         Object result = null;
         try {
             try {
-                result = tryToInvokeTransformationTo(property, mapValue);
+                result = tryToInvokeTransformTo(property, valueFromMap);
             } catch (NoSuchMethodException e) {
                 // try to setTheField with the result we got
-                result = mapValue;
+                result = valueFromMap;
             } catch(Exception e) {
                 // Unexpected error while trying to invoke the transform method.
             } finally {
-                this.tryToSetField(property, result);
+                tryToSetField(property, result);
             }
         } catch (SecurityException e) {
             e.printStackTrace();
@@ -99,36 +107,26 @@ public abstract class Model {
         return result;
     }
 
-    private Object tryToInvokeTransformationTo(String property, Object mapValue) throws NoSuchMethodException {
-        try {
-            Method method = this.getClass().getDeclaredMethod("transformTo" + capitalize(property), Object.class);
-            method.setAccessible(true);
-            return method.invoke(this, mapValue);
-        } catch (InvocationTargetException ignored) {
-        } catch (IllegalAccessException ignored) {
-        }
-        return null;
+    private Object tryToInvokeTransformTo(String property, Object value) throws NoSuchMethodException {
+        Method transformTo = getMethod("transformTo" + capitalize(property), Object.class);
+        return mirrorOnThis.invoke().method(transformTo).withArgs(value);
     }
 
-    private Object tryToInvokeTransformationFrom(Field property, Object propertyValue) throws NoSuchMethodException {
-        try {
-            Method method = this.getClass().getDeclaredMethod("transformFrom" + capitalize(property.getName()), property.getType());
-            method.setAccessible(true);
-            return method.invoke(this, propertyValue);
-        } catch (InvocationTargetException ignored) {
-        } catch (IllegalAccessException ignored) {
+    private Object tryToInvokeTransformationFrom(Field property, Object value) throws NoSuchMethodException {
+        Method transformFrom = getMethod("transformFrom" + capitalize(property.getName()), property.getType());
+        return mirrorOnThis.invoke().method(transformFrom).withArgs(value);
+    }
+
+    private Method getMethod(String methodName, Class<?> paramType) throws NoSuchMethodException {
+        Method method = mirrorOnClass.reflect().method(methodName).withAnyArgs();
+        if(method == null){
+            throw new NoSuchMethodException();
         }
-        return null;
+        return method;
     }
 
     private void tryToSetField(String property, Object data) {
-        try {
-            Field field = getField(this.getClass(), property);
-            field.setAccessible(true);
-            field.set(this, data);
-        } catch (NoSuchFieldException ignored) {
-        } catch (IllegalAccessException ignored) {
-        }
+        mirrorOnThis.set().field(property).withValue(data);
     }
 
     /**
@@ -149,16 +147,7 @@ public abstract class Model {
         return word.substring(0, 1).toUpperCase() + word.substring(1);
     }
 
-    private static Field getField(Class clazz, String fieldName) throws NoSuchFieldException {
-        try {
-            return clazz.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException e) {
-            Class superClass = clazz.getSuperclass();
-            if (superClass == null) {
-                throw e;
-            } else {
-                return getField(superClass, fieldName);
-            }
-        }
+    private Field getField(Class<?> clazz, String name) throws NoSuchFieldException {
+        return mirrorOnClass.reflect().field(name);
     }
 }
